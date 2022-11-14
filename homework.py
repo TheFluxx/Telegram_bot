@@ -1,4 +1,4 @@
-import telegram
+mport telegram
 import time
 import requests
 import logging
@@ -19,7 +19,7 @@ ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
-HOMEWORK_STATUSES = {
+HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -34,8 +34,8 @@ def send_message(bot, message):
             chat_id=TELEGRAM_CHAT_ID,
             text=message,
         )
-    except exceptions.TelegramError as error:
-        raise exceptions.TelegramError(
+    except telegram.error.TelegramError as error:
+        raise telegram.error.TelegramError(
             f'Не удалось отправить сообщение {error}')
     else:
         logging.info(f'Сообщение отправлено {message}')
@@ -62,11 +62,16 @@ def get_api_answer(current_timestamp):
                 f'причина: {homework_statuses.reason}'
                 f'текст: {homework_statuses.text}')
         return homework_statuses.json()
-    except Exception:
-        raise exceptions.ConnectinError(
-            'Не верный код ответа параметры запроса: url = {url},'
-            'headers = {headers},'
-            'params = {params}'.format(**params_request))
+    except Exception as error:
+        raise ConnectionError(
+            (
+                'Во время подключения к эндпоинту {url} произошла'
+                ' непредвиденная ошибка: {error}'        ' headers = {headers}; params = {params};'
+            ).format(
+                error=error,
+                **params_request
+            )
+        ) from error
 
 
 def check_response(response):
@@ -88,13 +93,13 @@ def parse_status(homework):
         raise KeyError('В ответе отсутсвует ключ homework_name')
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    if homework_status not in HOMEWORK_STATUSES:
+    if homework_status not in HOMEWORK_VERDICTS:
         raise ValueError(f'Неизвестный статус работы - {homework_status}')
     return(
         'Изменился статус проверки работы "{homework_name}" {verdict}'
     ).format(
         homework_name=homework_name,
-        verdict=HOMEWORK_STATUSES[homework_status]
+        verdict=HOMEWORK_VERDICTS[homework_status]
     )
 
 
