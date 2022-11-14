@@ -1,4 +1,4 @@
-mport telegram
+import telegram
 import time
 import requests
 import logging
@@ -66,7 +66,8 @@ def get_api_answer(current_timestamp):
         raise ConnectionError(
             (
                 'Во время подключения к эндпоинту {url} произошла'
-                ' непредвиденная ошибка: {error}'        ' headers = {headers}; params = {params};'
+                ' непредвиденная ошибка: {error}'
+                ' headers = {headers}; params = {params};'
             ).format(
                 error=error,
                 **params_request
